@@ -17,6 +17,7 @@ import es.unex.giiis.asee.tiviclone.api.getNetworkService
 import es.unex.giiis.asee.tiviclone.data.api.TvShow
 import es.unex.giiis.asee.tiviclone.data.model.Show
 import es.unex.giiis.asee.tiviclone.data.toShow
+import es.unex.giiis.asee.tiviclone.database.TiviCloneDatabase
 import es.unex.giiis.asee.tiviclone.databinding.FragmentShowDetailBinding
 import es.unex.giiis.asee.tiviclone.util.BACKGROUND
 import kotlinx.coroutines.launch
@@ -29,6 +30,8 @@ private const val TAG = "ShowDetailFragment"
  * create an instance of this fragment.
  */
 class ShowDetailFragment : Fragment() {
+
+    private lateinit var db: TiviCloneDatabase
 
     private var _binding: FragmentShowDetailBinding? = null
     private val binding get() = _binding!!
@@ -43,6 +46,11 @@ class ShowDetailFragment : Fragment() {
         return binding.root
     }
 
+    override fun onAttach(context: android.content.Context) {
+        super.onAttach(context)
+        db = TiviCloneDatabase.getInstance(context)!!
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val show = args.show
@@ -50,17 +58,19 @@ class ShowDetailFragment : Fragment() {
         lifecycleScope.launch{
             Log.d(TAG, "Fetching ${show.title} details")
             try{
-                showBinding(fetchShowDetail(show.id).toShow())
+                val _show = fetchShowDetail(show.id).toShow()
+                _show.isFavorite = show.isFavorite
+                showBinding(_show)
             } catch (error: APIError) {
                 Toast.makeText(context, error.message, Toast.LENGTH_SHORT).show()
             }
             Log.d(TAG, "Showing ${show.title} details")
         }
 
-
     }
 
     private fun showBinding(show: Show) {
+        binding.swFav.isChecked = show.isFavorite
         binding.tvShowTitle.text = show.title
         binding.tvDescription.text = show.description
         binding.tvYear.text = show.year
@@ -76,6 +86,18 @@ class ShowDetailFragment : Fragment() {
             .placeholder(R.drawable.placeholder)
             .into(binding.bannerImg)
 
+        binding.swFav.setOnCheckedChangeListener { _, isChecked ->
+            lifecycleScope.launch {
+                if (isChecked) {
+                    show.isFavorite = true
+                    db.showDao().insert(show)
+                } else {
+                    show.isFavorite = false
+                    db.showDao().delete(show)
+                }
+            }
+
+        }
     }
 
     private suspend fun fetchShowDetail(showId: Int): TvShow {

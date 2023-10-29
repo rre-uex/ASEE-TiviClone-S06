@@ -17,6 +17,7 @@ import es.unex.giiis.asee.tiviclone.data.api.TvShow
 import es.unex.giiis.asee.tiviclone.data.model.Show
 import es.unex.giiis.asee.tiviclone.data.dummy.dummyShows
 import es.unex.giiis.asee.tiviclone.data.toShow
+import es.unex.giiis.asee.tiviclone.database.TiviCloneDatabase
 import es.unex.giiis.asee.tiviclone.util.BACKGROUND
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -33,6 +34,8 @@ private const val ARG_PARAM2 = "param2"
  * create an instance of this fragment.
  */
 class DiscoverFragment : Fragment() {
+
+    private lateinit var db: TiviCloneDatabase
 
     private val TAG = "DiscoverFragment"
 
@@ -62,6 +65,7 @@ class DiscoverFragment : Fragment() {
 
     override fun onAttach(context: android.content.Context) {
         super.onAttach(context)
+        db = TiviCloneDatabase.getInstance(context)!!
         if (context is OnShowClickListener) {
             listener = context
         } else {
@@ -115,7 +119,8 @@ class DiscoverFragment : Fragment() {
                 listener.onShowClick(it)
             },
             onLongClick = {
-                Toast.makeText(context, "long click on: "+it.title, Toast.LENGTH_SHORT).show()
+                setFavorite(it)
+                Toast.makeText(context, "Added to library: "+it.title, Toast.LENGTH_SHORT).show()
             },
             context = this.context
         )
@@ -124,6 +129,13 @@ class DiscoverFragment : Fragment() {
             rvShowList.adapter = adapter
         }
         android.util.Log.d("DiscoverFragment", "setUpRecyclerView")
+    }
+
+    private fun setFavorite(show: Show){
+        lifecycleScope.launch {
+            show.isFavorite = true
+            db.showDao().insert(show)
+        }
     }
 
     override fun onDestroyView() {
