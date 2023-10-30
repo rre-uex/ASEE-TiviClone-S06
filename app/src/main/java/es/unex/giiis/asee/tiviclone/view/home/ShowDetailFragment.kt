@@ -15,6 +15,7 @@ import es.unex.giiis.asee.tiviclone.api.APIError
 import es.unex.giiis.asee.tiviclone.api.getNetworkService
 import es.unex.giiis.asee.tiviclone.data.api.TvShow
 import es.unex.giiis.asee.tiviclone.data.model.Show
+import es.unex.giiis.asee.tiviclone.data.model.User
 import es.unex.giiis.asee.tiviclone.data.toShow
 import es.unex.giiis.asee.tiviclone.database.TiviCloneDatabase
 import es.unex.giiis.asee.tiviclone.databinding.FragmentShowDetailBinding
@@ -29,6 +30,7 @@ private const val TAG = "ShowDetailFragment"
  */
 class ShowDetailFragment : Fragment() {
 
+    private lateinit var user: User
     private lateinit var db: TiviCloneDatabase
 
     private var _binding: FragmentShowDetailBinding? = null
@@ -52,6 +54,9 @@ class ShowDetailFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val show = args.show
+
+        val userProvider = activity as UserProvider
+        user = userProvider.getUser()
 
         lifecycleScope.launch{
             Log.d(TAG, "Fetching ${show.title} details")
@@ -88,7 +93,7 @@ class ShowDetailFragment : Fragment() {
             lifecycleScope.launch {
                 if (isChecked) {
                     show.isFavorite = true
-                    db.showDao().insertAndRelate(show,1)
+                    db.showDao().insertAndRelate(show, user.userId!!)
                 } else {
                     show.isFavorite = false
                     db.showDao().delete(show)

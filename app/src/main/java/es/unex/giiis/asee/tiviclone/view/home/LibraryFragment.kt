@@ -10,6 +10,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import es.unex.giiis.asee.tiviclone.databinding.FragmentLibraryBinding
 import es.unex.giiis.asee.tiviclone.data.model.Show
+import es.unex.giiis.asee.tiviclone.data.model.User
 import es.unex.giiis.asee.tiviclone.database.TiviCloneDatabase
 import kotlinx.coroutines.launch
 
@@ -25,6 +26,7 @@ private const val ARG_PARAM2 = "param2"
  */
 class LibraryFragment : Fragment() {
 
+    private lateinit var user: User
 
     private lateinit var db: TiviCloneDatabase
 
@@ -73,6 +75,9 @@ class LibraryFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         setUpRecyclerView()
 
+        val userProvider = activity as UserProvider
+        user = userProvider.getUser()
+
         loadFavorites()
     }
 
@@ -97,7 +102,7 @@ class LibraryFragment : Fragment() {
     private fun loadFavorites(){
         lifecycleScope.launch {
             binding.spinner.visibility = View.VISIBLE
-            favShows = db.showDao().getUserWithShows(1).shows
+            favShows = db.showDao().getUserWithShows(user.userId!!).shows
             adapter.updateData(favShows)
             binding.spinner.visibility = View.GONE
         }

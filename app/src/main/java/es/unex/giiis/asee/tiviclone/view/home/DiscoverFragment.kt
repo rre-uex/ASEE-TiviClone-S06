@@ -14,6 +14,7 @@ import es.unex.giiis.asee.tiviclone.api.APIError
 import es.unex.giiis.asee.tiviclone.api.getNetworkService
 import es.unex.giiis.asee.tiviclone.data.api.TvShow
 import es.unex.giiis.asee.tiviclone.data.model.Show
+import es.unex.giiis.asee.tiviclone.data.model.User
 import es.unex.giiis.asee.tiviclone.data.toShow
 import es.unex.giiis.asee.tiviclone.database.TiviCloneDatabase
 import kotlinx.coroutines.launch
@@ -30,6 +31,7 @@ private const val ARG_PARAM2 = "param2"
  */
 class DiscoverFragment : Fragment() {
 
+    private lateinit var user: User
     private lateinit var db: TiviCloneDatabase
 
     private val TAG = "DiscoverFragment"
@@ -81,6 +83,9 @@ class DiscoverFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         setUpRecyclerView()
 
+        val userProvider = activity as UserProvider
+        user = userProvider.getUser()
+
         lifecycleScope.launch {
             if (_shows.isEmpty()) {
                 binding.spinner.visibility = View.VISIBLE
@@ -95,6 +100,7 @@ class DiscoverFragment : Fragment() {
                 }
             }
         }
+
     }
 
     private suspend fun fetchShows(): List<TvShow> {
@@ -129,7 +135,7 @@ class DiscoverFragment : Fragment() {
     private fun setFavorite(show: Show){
         lifecycleScope.launch {
             show.isFavorite = true
-            db.showDao().insertAndRelate(show,1)
+            db.showDao().insertAndRelate(show,user.userId!!)
         }
     }
 
