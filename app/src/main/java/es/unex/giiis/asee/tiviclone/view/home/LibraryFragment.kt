@@ -8,11 +8,8 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
-import es.unex.giiis.asee.tiviclone.api.APIError
-import es.unex.giiis.asee.tiviclone.data.api.TvShow
 import es.unex.giiis.asee.tiviclone.databinding.FragmentLibraryBinding
 import es.unex.giiis.asee.tiviclone.data.model.Show
-import es.unex.giiis.asee.tiviclone.data.toShow
 import es.unex.giiis.asee.tiviclone.database.TiviCloneDatabase
 import kotlinx.coroutines.launch
 
@@ -57,7 +54,7 @@ class LibraryFragment : Fragment() {
     override fun onAttach(context: android.content.Context) {
         super.onAttach(context)
         db = TiviCloneDatabase.getInstance(context)!!
-        if (context is LibraryFragment.OnShowClickListener) {
+        if (context is OnShowClickListener) {
             listener = context
         } else {
             throw RuntimeException(context.toString() + " must implement OnShowClickListener")
@@ -100,7 +97,7 @@ class LibraryFragment : Fragment() {
     private fun loadFavorites(){
         lifecycleScope.launch {
             binding.spinner.visibility = View.VISIBLE
-            favShows = db.showDao().getAll()
+            favShows = db.showDao().getUserWithShows(1).shows
             adapter.updateData(favShows)
             binding.spinner.visibility = View.GONE
         }
@@ -108,6 +105,7 @@ class LibraryFragment : Fragment() {
     private fun setNoFavorite(show: Show){
         lifecycleScope.launch {
             show.isFavorite = false
+            //delete show and userShow is deleted by cascade
             db.showDao().delete(show)
         }
     }

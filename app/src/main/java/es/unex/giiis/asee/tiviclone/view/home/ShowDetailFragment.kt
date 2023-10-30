@@ -11,7 +11,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.navArgs
 import com.bumptech.glide.Glide
 import es.unex.giiis.asee.tiviclone.R
-import es.unex.giiis.asee.tiviclone.api.APICallback
 import es.unex.giiis.asee.tiviclone.api.APIError
 import es.unex.giiis.asee.tiviclone.api.getNetworkService
 import es.unex.giiis.asee.tiviclone.data.api.TvShow
@@ -19,7 +18,6 @@ import es.unex.giiis.asee.tiviclone.data.model.Show
 import es.unex.giiis.asee.tiviclone.data.toShow
 import es.unex.giiis.asee.tiviclone.database.TiviCloneDatabase
 import es.unex.giiis.asee.tiviclone.databinding.FragmentShowDetailBinding
-import es.unex.giiis.asee.tiviclone.util.BACKGROUND
 import kotlinx.coroutines.launch
 
 private const val TAG = "ShowDetailFragment"
@@ -58,7 +56,7 @@ class ShowDetailFragment : Fragment() {
         lifecycleScope.launch{
             Log.d(TAG, "Fetching ${show.title} details")
             try{
-                val _show = fetchShowDetail(show.id).toShow()
+                val _show = fetchShowDetail(show.showId).toShow()
                 _show.isFavorite = show.isFavorite
                 showBinding(_show)
             } catch (error: APIError) {
@@ -90,7 +88,7 @@ class ShowDetailFragment : Fragment() {
             lifecycleScope.launch {
                 if (isChecked) {
                     show.isFavorite = true
-                    db.showDao().insert(show)
+                    db.showDao().insertAndRelate(show,1)
                 } else {
                     show.isFavorite = false
                     db.showDao().delete(show)
